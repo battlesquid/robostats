@@ -20,6 +20,7 @@ use commands::{
 };
 use api::{
     vrc_data_analysis::VRCDataAnalysis,
+    qnaplus::Qnaplus,
     skills::SkillsCache,
 };
 use robotevents::{
@@ -28,6 +29,8 @@ use robotevents::{
     query::{SeasonsQuery, PaginatedQuery},
 };
 use shuttle_runtime::SecretStore;
+
+use crate::commands::rules::RulesCommand;
 
 mod api;
 mod commands;
@@ -38,6 +41,7 @@ pub struct BotRequestError;
 struct Bot {
     robotevents: RobotEvents,
     vrc_data_analysis: VRCDataAnalysis,
+    qnaplus: Qnaplus,
     skills_cache: SkillsCache,
     season_list: Result<PaginatedResponse<Season>, BotRequestError>,
     program_list: Result<PaginatedResponse<IdInfo>, BotRequestError>
@@ -61,6 +65,7 @@ impl EventHandler for Bot {
         Command::create_global_command(&ctx.http, TeamCommand::command(self.program_list.clone().ok())).await.expect("Failed to register team command.");
         Command::create_global_command(&ctx.http, PingCommand::command()).await.expect("Failed to register ping command.");
         Command::create_global_command(&ctx.http, PredictCommand::command()).await.expect("Failed to register predict command.");
+        Command::create_global_command(&ctx.http, RulesCommand::command()).await.expect("Failed to register rules command.");
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
@@ -72,6 +77,7 @@ impl EventHandler for Bot {
                 let predict_command = PredictCommand::default();
                 let ping_command = PingCommand::default();
                 let wiki_command = WikiCommand::default();
+                let rules_command = RulesCommand::default();
 
                 // Generate a response messaage for a given command type.
                 let response_message = match command.data.name.as_str() {
@@ -86,6 +92,9 @@ impl EventHandler for Bot {
                     },
                     "wiki" => {
                         wiki_command.response(&ctx, &command)
+                    },
+                    "rules" => {
+                        rules_command.response(&ctx, &command, &self.qnaplus).await
                     },
                     _ => {
                         CreateInteractionResponseMessage::new().content("not implemented :(")
@@ -160,6 +169,7 @@ async fn serenity(
     // HTTP clients for RobotEvents and vrc-data-analysis
     let robotevents = RobotEvents::new(robotevents_token);
     let vrc_data_analysis = VRCDataAnalysis::new();
+    let qnaplus = Qnaplus::new();
 
     // Build client with token and guild messages intent
     let client = Client::builder(discord_token, GatewayIntents::GUILD_MESSAGES)
@@ -170,6 +180,7 @@ async fn serenity(
             season_list: robotevents.seasons(SeasonsQuery::default().per_page(250)).await.map_err(|_| BotRequestError),
             robotevents,
             vrc_data_analysis,
+            qnaplus,
             skills_cache: SkillsCache::default(),
         })
         .await

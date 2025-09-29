@@ -2,6 +2,7 @@ pub mod ping;
 pub mod team;
 pub mod wiki;
 pub mod predict;
+pub mod rules;
 
 pub use ping::*;
 pub use team::*;
