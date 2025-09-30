@@ -1,7 +1,7 @@
 use reqwest::header::USER_AGENT;
 use std::time::Duration;
 
-use crate::api::qnaplus::schema::PartialQuestion;
+use crate::api::qnaplus::schema::*;
 
 #[derive(Default, Debug, Clone)]
 pub struct Qnaplus {
@@ -30,9 +30,17 @@ impl Qnaplus {
             .await?)
     }
 
-    pub async fn get_qnas_for_rule(&self, rule_name: &str, season: Option<&str>) -> Result<PartialQuestion, reqwest::Error> {
+    pub async fn get_qnas_for_rule(
+        &self,
+        rule_name: &str,
+        season: Option<&str>,
+    ) -> Result<RuleResponse, reqwest::Error> {
+        let formatted_rule = rule_name.to_uppercase();
         let response = self
-            .request(format!("/rules/{}/qnas?season={}", rule_name, season.unwrap_or("")))
+            .request(format!(
+                "/rules/{formatted_rule}/qnas?season={}",
+                season.unwrap_or("")
+            ))
             .await?;
         Ok(response.json().await?)
     }
