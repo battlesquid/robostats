@@ -10,7 +10,7 @@ The following features are currently supported:
 - Integration with [VRC Data Analysis](https://vrc-data-analysis.com/) to pull a VRC team's [TrueSkill](https://www.microsoft.com/en-us/research/project/trueskill-ranking-system/) value and rank.
 - The ability to look up articles on the [Purdue Sigbots wiki](wiki.purduesigbots.com/).
 - The ability to predict VRC match results, again using [VRC Data Analysis](https://vrc-data-analysis.com/).
-- The ability to look up specific VRC game rules with their corresponding Q&As.
+- The ability to look up specific VRC game rules with their corresponding Q&As, powered by [qnaplus](https://qnapl.us) and [referee.fyi](https://referee.fyi).
 
 Additionally, the following features are in-development or planned:
 - The ability to view information about specific events.
